@@ -1,0 +1,39 @@
+from datetime import datetime, timedelta
+import sqlite3
+
+def main():
+    data = gatherData()
+    connection = sqlite3.connect("../test.db")
+    cursor = connection.cursor() 
+
+    for row in data:
+        cursor.execute("UPDATE weather SET datenum = ? WHERE timsestamp = ?", (row[8], row[4]))
+    connection.commit()
+    print(cursor.row_factory)
+    connection.close()
+
+def gatherData():
+    # rows[i][0] = pressure
+    # rows[i][1] = temperature
+    # rows[i][2] = humidity
+    # rows[i][3] = gas (volatile natural particles or smth)
+    # rows[i][4] = datetime (formatted string '%m/%d/%Y %H:%M:%S')
+    # rows[i][5] = UV
+    # rows[i][6] = lux
+    connection = sqlite3.connect("../test.db")
+    cursor = connection.cursor() 
+    rows = cursor.execute("SELECT * FROM weather").fetchall()
+
+    data = []
+    for row in rows:
+        data.append([])
+        for value in row:
+            data[-1].append(value)
+        dt = datetime.strptime(data[-1][4], '%m/%d/%Y %H:%M:%S')
+        data[-1].append(((((dt.year - 2022) * 12 + dt.month) * 30.437 + dt.day) * 24 + dt.hour) * 60 + dt.minute)
+        print(data[-1])
+
+    return data
+
+if __name__ == "__main__":
+    main()
